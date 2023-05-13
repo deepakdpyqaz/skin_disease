@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 
 
-EPOCHS = 30
+EPOCHS = 2
 
 
 def load_dir_generator(dir):
@@ -91,7 +91,7 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
 
-    epochs = 3
+    epochs = 1
     densenet_model.fit(
         train_ds,
         epochs=epochs,
@@ -164,7 +164,7 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
 
-    epochs = 3
+    epochs = 1
     history = inception_model.fit(
         train_ds,
         epochs=epochs,
@@ -218,3 +218,5 @@ def fitnessfunction(particle: Input) -> Output:
     scoresList = ensemble_model.evaluate(test_ds, verbose=1, steps=test_steps_per_epoch)
     score = scoresList[1]
     return score
+
+client = Client(name="mrfo_btp",func=fitnessfunction)

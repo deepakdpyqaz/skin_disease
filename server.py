@@ -151,8 +151,8 @@ def get_scores(population, name="iteration"):
     return scores
 
 
-POPULATION_SIZE = 10  # Number of particles
-NO_OF_ITERATIONS = 30  # Number of iterations of MRFO
+POPULATION_SIZE = 2  # Number of particles
+NO_OF_ITERATIONS = 2  # Number of iterations of MRFO
 LOWER_BOUND = 0.0
 UPPER_BOUND = 1.0
 finished_iterations = IterationConfig()
