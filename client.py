@@ -10,6 +10,7 @@ from zipfile import ZipFile
 import shutil
 from pathlib import Path
 
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 EPOCHS = 2
 
@@ -151,7 +152,7 @@ def fitnessfunction(particle: Input) -> Output:
     x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.Dense(7, activation="softmax")(x)
 
-    inception_model = keras.models.Model(pre_trained_inception_model.input, x)
+    inception_model = keras.models.Model(input_layer, x)
     optimizer = keras.optimizers.Adam(
         learning_rate=particle.lr,
         beta_1=particle.b1,
@@ -219,5 +220,6 @@ def fitnessfunction(particle: Input) -> Output:
     score = scoresList[1]
     return score
 
-client = Client(server_name="mrfo_btp",func=fitnessfunction)
-client.start_process(timeout=2*60*60)
+
+client = Client(server_name="mrfo_btp", func=fitnessfunction)
+client.start_process(timeout=2 * 60 * 60)

@@ -7,19 +7,21 @@ import logging
 import requests
 import os
 import json
+
 TELEGRAM_TOKEN = "5765471758:AAFPzn2Z2gbbe0sp6yurqxwbSmYrrGanla4"
 TELEGRAM_CHAT_ID = "1479006629"
 
+
 def send_to_telegram(text):
-    '''
+    """
     Sends a text to telegram chat
     text: text to send
-    '''
+    """
     token = TELEGRAM_TOKEN
     chat_id = TELEGRAM_CHAT_ID
-    url = f'https://api.telegram.org/bot{token}/sendMessage'
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
     try:
-        params = {'chat_id': chat_id, 'text': text}
+        params = {"chat_id": chat_id, "text": text}
         response = requests.post(url, params=params)
         return response
     except Exception as e:
@@ -53,7 +55,11 @@ class GlobalConfig:
         key._task = ""
         key._id = 0
 
-        return Output.FromString(self.hasmap[key.SerializeToString().decode(encoding="unicode_escape")].encode(encoding="unicode_escape"))
+        return Output.FromString(
+            self.hasmap[
+                key.SerializeToString().decode(encoding="unicode_escape")
+            ].encode(encoding="unicode_escape")
+        )
 
     def __setitem__(self, key: Input, value: Output):
         key._task = ""
@@ -64,7 +70,7 @@ class GlobalConfig:
         ] = value.SerializeToString().decode(encoding="unicode_escape")
         self.persist()
 
-    def __contains__(self, key:Input):
+    def __contains__(self, key: Input):
         key._task = ""
         key._id = 0
         return key.SerializeToString().decode(encoding="unicode_escape") in self.hasmap
@@ -85,9 +91,10 @@ class IterationConfig:
         self.iteration += 1
         self.persist()
 
-    def decrement(self): 
+    def decrement(self):
         self.iteration -= 1
         self.persist()
+
 
 def convert_to_particle(solution, idx=0):
     index = int(np.round(solution[0] * (len(ranges["Batch Size"]) - 1)))
@@ -139,13 +146,16 @@ def get_scores(population, name="iteration"):
             to_calculate.append(p)
 
     server.create_task(name, to_calculate)
-    calculated_results = server.get_results(timeout=2*60*60)
+    calculated_results = server.get_results(timeout=2 * 60 * 60)
     results.extend(calculated_results)
     scores = [op.score for res in sorted(results, key=attrgetter("_id"))]
     if len(scores) != len(population):
         logging.error(f"Lengths of scores and population do not match for {name}")
         send_to_telegram(f"Lengths of scores and population do not match for {name}")
         raise Exception("Lengths of scores and population do not match")
+    # Updating the global hashmap
+    for idx in range(len(population)):
+        global_hashmap[population_task[idx]] = results[idx]
     return scores
 
 
@@ -169,8 +179,6 @@ ranges = {
 }
 
 
-
-
 server = Server(name="mrfo_btp")
 global_hashmap = GlobalConfig()
 best_score = np.array(0.0)
@@ -192,7 +200,7 @@ if (
     best_score = np.load("best_score.npy")
 else:
     # First iteration
-    scores = get_scores(population,"Init Iteration")
+    scores = get_scores(population, "Init Iteration")
     best_score = np.max(scores)
     best_solution = population[np.argmax(scores)]
 
@@ -206,13 +214,15 @@ MRFO = {
 }
 
 
-
-
 logging.info(
     f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
 )
-send_to_telegram(f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score")
-print(f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score")
+send_to_telegram(
+    f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
+)
+print(
+    f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
+)
 for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
     if np.random.uniform() < 0.5:  # Cyclone forgaging
         if iterationNumber / NO_OF_ITERATIONS < np.random.rand():  # Exploratory
@@ -261,7 +271,7 @@ for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
             population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores = get_scores(population,f"Iteration-{iterationNumber}-1")
+    scores = get_scores(population, f"Iteration-{iterationNumber}-1")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
@@ -274,7 +284,7 @@ for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
         population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores = get_scores(population,f"Iteration-{iterationNumber}-2")
+    scores = get_scores(population, f"Iteration-{iterationNumber}-2")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
@@ -287,7 +297,9 @@ for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
     )
     finished_iterations.increment()
     logging.info(f"Iteration {iterationNumber} completed with best score {best_score}")
-    send_to_telegram(f"Iteration {iterationNumber} completed with best score {best_score}")
+    send_to_telegram(
+        f"Iteration {iterationNumber} completed with best score {best_score}"
+    )
     print(f"Iteration {iterationNumber} completed with best score {best_score}")
 
 

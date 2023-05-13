@@ -45,7 +45,7 @@ def get_system_stats():
     system_stats["cpu_utilization"] = cpu_percent
 
     # Add memory information to the dictionary
-    system_stats["memory"] = round(total_memory / (1024 ** 3), 2)  # Convert to GB
+    system_stats["memory"] = round(total_memory / (1024**3), 2)  # Convert to GB
     system_stats["memory_utilization"] = memory_percent
 
     # Get disk utilization
@@ -53,7 +53,7 @@ def get_system_stats():
     total_disk_space = disk_usage.total  # Total disk space in bytes
     used_disk_space = disk_usage.used  # Used disk space in bytes
     disk_percent = disk_usage.percent  # Disk utilization percentage
-    system_stats["disk"] = round(total_disk_space / (1024 ** 3), 2)  # Convert to GB
+    system_stats["disk"] = round(total_disk_space / (1024**3), 2)  # Convert to GB
     system_stats["disk_utilization"] = disk_percent
 
     # Get GPU utilization

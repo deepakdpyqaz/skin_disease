@@ -118,6 +118,9 @@ class Server:
                 host=pika_credentials["url"],
                 virtual_host=pika_credentials["vhost"],
                 port=pika_credentials["port"],
+                heartbeat=0,
+                blocked_connection_timeout=None,
+                socket_timeout=None,
                 credentials=pika.PlainCredentials(
                     pika_credentials["username"], pika_credentials["password"]
                 ),
@@ -208,6 +211,9 @@ class Client:
                 host=pika_credentials["url"],
                 virtual_host=pika_credentials["vhost"],
                 port=pika_credentials["port"],
+                heartbeat=0,
+                blocked_connection_timeout=None,
+                socket_timeout=None,
                 credentials=pika.PlainCredentials(
                     pika_credentials["username"], pika_credentials["password"]
                 ),
