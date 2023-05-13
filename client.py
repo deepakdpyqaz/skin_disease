@@ -10,7 +10,7 @@ from zipfile import ZipFile
 import shutil
 from pathlib import Path
 
-tf.logging.set_verbosity(tf.logging.ERROR)
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 EPOCHS = 2
 
