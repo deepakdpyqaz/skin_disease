@@ -141,7 +141,7 @@ def get_scores(population, name="iteration"):
             to_calculate.append(p)
 
     server.create_task(f"Iteration-{iterationNumber}", to_calculate)
-    calculated_results = server.get_results()
+    calculated_results = server.get_results(timeout=2*60*60)
     results.extend(calculated_results)
     scores = [op.score for res in sorted(results, key=attrgetter("_id"))]
     if len(scores) != len(population):

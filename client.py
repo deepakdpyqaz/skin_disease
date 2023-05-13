@@ -219,4 +219,4 @@ def fitnessfunction(particle: Input) -> Output:
     score = scoresList[1]
     return score
 
-client = Client(name="mrfo_btp",func=fitnessfunction)
+client = Client(server_name="mrfo_btp",func=fitnessfunction)
