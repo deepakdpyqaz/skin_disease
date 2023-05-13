@@ -220,3 +220,4 @@ def fitnessfunction(particle: Input) -> Output:
     return score
 
 client = Client(server_name="mrfo_btp",func=fitnessfunction)
+client.start_process(timeout=2*60*60)

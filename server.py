@@ -1,14 +1,12 @@
 import os
 from glob import glob
-import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 from messages.requests_pb2 import Input, Output
 from distributed import Server
 import logging
 import requests
 import os
-
+import json
 TELEGRAM_TOKEN = "5765471758:AAFPzn2Z2gbbe0sp6yurqxwbSmYrrGanla4"
 TELEGRAM_CHAT_ID = "1479006629"
 
@@ -55,21 +53,21 @@ class GlobalConfig:
         key._task = ""
         key._id = 0
 
-        return Output.FromString(self.hasmap[key.SerializeToString().decode()].encode())
+        return Output.FromString(self.hasmap[key.SerializeToString().decode(encoding="unicode_escape")].encode(encoding="unicode_escape"))
 
     def __setitem__(self, key: Input, value: Output):
         key._task = ""
         key._id = 0
         value._id = 0
         self.hasmap[
-            key.SerializeToString().decode()
-        ] = value.SerializeToString().decode()
+            key.SerializeToString().decode(encoding="unicode_escape")
+        ] = value.SerializeToString().decode(encoding="unicode_escape")
         self.persist()
 
-    def __contains__(self, key):
+    def __contains__(self, key:Input):
         key._task = ""
         key._id = 0
-        return key.SerializeToString().decode() in self.hasmap
+        return key.SerializeToString().decode(encoding="unicode_escape") in self.hasmap
 
 
 class IterationConfig:
@@ -135,12 +133,12 @@ def get_scores(population, name="iteration"):
     population_task = [convert_to_particle(p, idx) for idx, p in enumerate(population)]
     to_calculate = list()
     for p in population_task:
-        if p.SerializeToString() in global_hashmap:
-            results(global_hashmap[p])
+        if p in global_hashmap:
+            results.append(global_hashmap[p])
         else:
             to_calculate.append(p)
 
-    server.create_task(f"Iteration-{iterationNumber}", to_calculate)
+    server.create_task(name, to_calculate)
     calculated_results = server.get_results(timeout=2*60*60)
     results.extend(calculated_results)
     scores = [op.score for res in sorted(results, key=attrgetter("_id"))]

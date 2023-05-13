@@ -3,3 +3,5 @@ __pycache__/
 X_*/
 y_*/
 env/
+*.log
+*.npy
