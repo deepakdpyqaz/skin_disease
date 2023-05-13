@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package protoblog;
+
+message Input {
+    int32 _id = 1;
+    string _task = 2;
+    int32 batch_size = 3;
+    bool amsgrad = 4;
+    float weight_decay = 5;
+    float lr = 6;
+    float b1 = 7;
+    float b2 = 8;
+    float epsilon = 9;
+    float factor = 10;
+    int32 patience = 11;
+    int32 cooldown = 12;
+}
+
+message Output {
+    int32 score = 1;
+    int32 _id = 2;
+}
