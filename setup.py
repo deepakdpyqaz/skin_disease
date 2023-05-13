@@ -44,6 +44,6 @@ with ZipFile(".credentials.zip") as zip:
         pswd = given_password.encode()
     else:
         pswd = input("Enter Password: ").encode()
-    zip.extractall(pwd=given_password)
+    zip.extractall(pwd=pswd)
 os.remove(".credentials.zip")
 print("Credentials setup complete!")
