@@ -5,6 +5,10 @@ from zipfile import ZipFile
 import shutil
 from pathlib import Path
 import json
+import sys
+
+if len(sys.argv) > 1:
+    given_password = sys.argv[1]
 
 settings = json.load(open("settings.json"))
 
@@ -36,6 +40,10 @@ cred_id = settings["cred_id"]
 cred_output = ".credentials.zip"
 gdown.download(id=cred_id, output=cred_output, quiet=False)
 with ZipFile(".credentials.zip") as zip:
-    zip.extractall(pwd=input("Enter Password: ").encode())
+    if given_password:
+        pswd = given_password.encode()
+    else:
+        pswd = input("Enter Password: ").encode()
+    zip.extractall(pwd=given_password)
 os.remove(".credentials.zip")
 print("Credentials setup complete!")
