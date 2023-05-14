@@ -7,6 +7,8 @@ import logging
 import requests
 import os
 import json
+from operator import attrgetter
+import base64
 
 TELEGRAM_TOKEN = "5765471758:AAFPzn2Z2gbbe0sp6yurqxwbSmYrrGanla4"
 TELEGRAM_CHAT_ID = "1479006629"
@@ -58,26 +60,24 @@ class GlobalConfig:
     def __getitem__(self, key):
         key._task = ""
         key._id = 0
-
-        return Output.FromString(
-            self.hasmap[
-                key.SerializeToString().decode(encoding="unicode_escape")
-            ].encode(encoding="unicode_escape")
-        )
+        encoded_key = base64.urlsafe_b64encode(key.SerializeToString()).decode()
+        obj = self.hasmap[encoded_key]
+        encoded_object = base64.urlsafe_b64decode(obj.encode())
+        return Output.FromString(encoded_object)
 
     def __setitem__(self, key: Input, value: Output):
         key._task = ""
         key._id = 0
         value._id = 0
         self.hasmap[
-            key.SerializeToString().decode(encoding="unicode_escape")
-        ] = value.SerializeToString().decode(encoding="unicode_escape")
+            base64.urlsafe_b64encode(key.SerializeToString()).decode()
+        ] = base64.urlsafe_b64encode(value.SerializeToString()).decode()
         self.persist()
 
     def __contains__(self, key: Input):
         key._task = ""
         key._id = 0
-        return key.SerializeToString().decode(encoding="unicode_escape") in self.hasmap
+        return base64.urlsafe_b64encode(key.SerializeToString()).decode() in self.hasmap
 
 
 class IterationConfig:
@@ -148,9 +148,11 @@ def get_scores(population, name="iteration"):
             results.append(global_hashmap[p])
         else:
             to_calculate.append(p)
-
-    server.create_task(name, to_calculate)
-    calculated_results = server.get_results(timeout=2 * 60 * 60)
+    if to_calculate:
+        server.create_task(name, to_calculate)
+        calculated_results = server.get_results(timeout=2 * 60 * 60)
+    else:
+        calculated_results = []
     results.extend(calculated_results)
     scores = []
     losses = []
@@ -167,8 +169,8 @@ def get_scores(population, name="iteration"):
     return scores, losses
 
 
-POPULATION_SIZE = 2  # Number of particles
-NO_OF_ITERATIONS = 3  # Number of iterations of MRFO
+POPULATION_SIZE = 10  # Number of particles
+NO_OF_ITERATIONS = 30  # Number of iterations of MRFO
 LOWER_BOUND = 0.0
 UPPER_BOUND = 1.0
 finished_iterations = IterationConfig()
@@ -201,8 +203,8 @@ send_to_telegram("Code started")
 print("Code started")
 
 if (
-    os.path.exists("bestSolutions.npy")
-    and os.path.exists("bestScores.npy")
+    os.path.exists("best_score.npy")
+    and os.path.exists("best_solution.npy")
     and os.path.exists("population.npy")
 ):
     # Load current state
@@ -211,33 +213,33 @@ if (
     best_score = np.load("best_score.npy")
 else:
     # First iteration
-    scores = get_scores(population, "Init Iteration")
+    scores, losses = get_scores(population, "Init Iteration")
     best_score = np.max(scores)
     best_solution = population[np.argmax(scores)]
 
 
 logging.info(
-    f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
+    f"Starting MRFO with {finished_iterations.iteration} iterations completed and {best_score} as best score"
 )
 send_to_telegram(
-    f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
+    f"Starting MRFO with {finished_iterations.iteration} iterations completed and {best_score} as best score"
 )
 print(
-    f"Starting MRFO with {finished_iterations} iterations completed and {best_score} as best score"
+    f"Starting MRFO with {finished_iterations.iteration} iterations completed and {best_score} as best score"
 )
-for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
+for iterationNumber in range(finished_iterations.iteration, NO_OF_ITERATIONS):
+    r = np.random.uniform(1)
+    alpha = 2 * r * np.sqrt(np.abs(np.log(r)))
+    r1 = np.random.uniform(1)
+    beta = (
+        2
+        * np.exp(r1 * (NO_OF_ITERATIONS - iterationNumber + 1) / NO_OF_ITERATIONS)
+        * np.sin(2 * np.pi * r1)
+    )
+    s = 2
+    r2 = np.random.uniform(1)
+    r3 = np.random.uniform(1)
     if np.random.uniform() < 0.5:  # Cyclone forgaging
-        r = np.random.uniform(1)
-        alpha = 2 * r * np.sqrt(np.abs(np.log(r)))
-        r1 = np.random.uniform(1)
-        beta = (
-            2
-            * np.exp(r1 * (NO_OF_ITERATIONS - iterationNumber + 1) / NO_OF_ITERATIONS)
-            * np.sin(2 * np.pi * r1)
-        )
-        s = 2
-        r2 = np.random.uniform(1)
-        r3 = np.random.uniform(1)
         if iterationNumber / NO_OF_ITERATIONS < np.random.rand():  # Exploratory
             x_rand = np.random.uniform(size=SOLUTION_SIZE)
             population[0] = (
@@ -301,7 +303,7 @@ for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
     np.save("best_solution.npy", best_solution)
     np.save("best_score.npy", best_score)
     iteration_dir = os.path.join(
-        RESULTS, f"iteration-{iterationNumber}-{best_score.replace('.','_')}"
+        RESULTS, f"iteration-{iterationNumber}-{str(best_score).replace('.','_')}"
     )
     if not os.path.exists(iteration_dir):
         os.makedirs(iteration_dir)

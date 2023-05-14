@@ -5,3 +5,4 @@ y_*/
 env/
 *.log
 *.npy
+global_config.json

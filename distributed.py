@@ -178,7 +178,7 @@ class Server:
             self.channel.basic_ack(delivery_tag=method.delivery_tag)
             self.tasks_assigned -= 1
             print(f"Tasks left: {self.tasks_assigned}")
-            if self.tasks_assigned == 0:
+            if self.tasks_assigned <= 0:
                 break
         if self.tasks_assigned > 0:
             warnings.Warn("Some tasks were not completed")

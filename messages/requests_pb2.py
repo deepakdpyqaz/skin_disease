@@ -6,23 +6,23 @@ from google.protobuf.internal import builder as _builder
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
+
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
 
-
-
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0erequests.proto\x12\tprotoblog\"\xc7\x01\n\x05Input\x12\x0b\n\x03_id\x18\x01 \x01(\x05\x12\r\n\x05_task\x18\x02 \x01(\t\x12\x12\n\nbatch_size\x18\x03 \x01(\x05\x12\x0f\n\x07\x61msgrad\x18\x04 \x01(\x08\x12\x14\n\x0cweight_decay\x18\x05 \x01(\x02\x12\n\n\x02lr\x18\x06 \x01(\x02\x12\n\n\x02\x62\x31\x18\x07 \x01(\x02\x12\n\n\x02\x62\x32\x18\x08 \x01(\x02\x12\x0f\n\x07\x65psilon\x18\t \x01(\x02\x12\x0e\n\x06\x66\x61\x63tor\x18\n \x01(\x02\x12\x10\n\x08patience\x18\x0b \x01(\x05\x12\x10\n\x08\x63ooldown\x18\x0c \x01(\x05\"2\n\x06Output\x12\r\n\x05score\x18\x01 \x01(\x02\x12\x0c\n\x04loss\x18\x02 \x01(\x02\x12\x0b\n\x03_id\x18\x03 \x01(\x05\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
+    b'\n\x0erequests.proto\x12\tprotoblog"\xc7\x01\n\x05Input\x12\x0b\n\x03_id\x18\x01 \x01(\x05\x12\r\n\x05_task\x18\x02 \x01(\t\x12\x12\n\nbatch_size\x18\x03 \x01(\x05\x12\x0f\n\x07\x61msgrad\x18\x04 \x01(\x08\x12\x14\n\x0cweight_decay\x18\x05 \x01(\x02\x12\n\n\x02lr\x18\x06 \x01(\x02\x12\n\n\x02\x62\x31\x18\x07 \x01(\x02\x12\n\n\x02\x62\x32\x18\x08 \x01(\x02\x12\x0f\n\x07\x65psilon\x18\t \x01(\x02\x12\x0e\n\x06\x66\x61\x63tor\x18\n \x01(\x02\x12\x10\n\x08patience\x18\x0b \x01(\x05\x12\x10\n\x08\x63ooldown\x18\x0c \x01(\x05"2\n\x06Output\x12\r\n\x05score\x18\x01 \x01(\x02\x12\x0c\n\x04loss\x18\x02 \x01(\x02\x12\x0b\n\x03_id\x18\x03 \x01(\x05\x62\x06proto3'
+)
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
-_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'requests_pb2', _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, "requests_pb2", _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
-
-  DESCRIPTOR._options = None
-  _globals['_INPUT']._serialized_start=30
-  _globals['_INPUT']._serialized_end=229
-  _globals['_OUTPUT']._serialized_start=231
-  _globals['_OUTPUT']._serialized_end=281
+    DESCRIPTOR._options = None
+    _globals["_INPUT"]._serialized_start = 30
+    _globals["_INPUT"]._serialized_end = 229
+    _globals["_OUTPUT"]._serialized_start = 231
+    _globals["_OUTPUT"]._serialized_end = 281
 # @@protoc_insertion_point(module_scope)
