@@ -68,9 +68,9 @@ def fitnessfunction(particle: Input) -> Output:
     # Training Densenet
 
     train_ds = create_dataset("X_train", "y_train")
-    train_ds = test_ds
     test_ds = create_dataset("X_test", "y_test")
     val_ds = create_dataset("X_val", "y_val")
+    train_ds = test_ds
     train_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size
     val_steps_per_epoch = len(os.listdir("X_val")) // particle.batch_size
     test_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size

@@ -177,6 +177,7 @@ class Server:
             results.append(Output().FromString(body))
             self.channel.basic_ack(delivery_tag=method.delivery_tag)
             self.tasks_assigned -= 1
+            print(f"Tasks left: {self.tasks_assigned}")
             if self.tasks_assigned == 0:
                 break
         if self.tasks_assigned > 0:
