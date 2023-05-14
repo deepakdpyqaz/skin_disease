@@ -9,14 +9,19 @@ import os
 from zipfile import ZipFile
 import shutil
 from pathlib import Path
+import sys
 
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
-EPOCHS = 2
+
+if len(sys.argv)>1:
+    EPOCHS = int(sys.argv[1])
+else:
+    EPOCHS = 20
 
 
 def load_dir_generator(dir):
-    for f in Path(dir.decode("ascii")).glob("*.npy"):
+    for f in sorted(list(Path(dir.decode("ascii")).glob("*.npy"))):
         yield np.load(f)
 
 
@@ -45,7 +50,8 @@ def data_augmentation():
             keras.layers.RandomRotation(0.2),
             keras.layers.RandomZoom(0.2),
             keras.layers.RandomContrast(0.2),
-        ]
+        ],
+        name="image_augmentation",
     )
     return data_augmentation
 
@@ -63,7 +69,7 @@ def fitnessfunction(particle: Input) -> Output:
     val_steps_per_epoch = len(os.listdir("X_val")) // particle.batch_size
     test_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size
 
-    input_layer = keras.layers.Input(shape=(192, 256, 3))
+    input_layer = keras.layers.Input(shape=(192, 256, 3),name="input_layer")
     augmented_image = data_augmentation()(input_layer)
 
     pre_trained_densenet_model = keras.applications.DenseNet201(
@@ -79,7 +85,7 @@ def fitnessfunction(particle: Input) -> Output:
     x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.Dense(7, activation="softmax")(x)
 
-    densenet_model = keras.models.Model(input_layer, x)
+    densenet_model = keras.models.Model(input_layer, x,name="densenet_model")
     optimizer = keras.optimizers.Adam(
         learning_rate=particle.lr,
         beta_1=particle.b1,
@@ -92,7 +98,7 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
 
-    epochs = 1
+    epochs = FINE_TUNE_EPOCHS
     densenet_model.fit(
         train_ds,
         epochs=epochs,
@@ -152,7 +158,7 @@ def fitnessfunction(particle: Input) -> Output:
     x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.Dense(7, activation="softmax")(x)
 
-    inception_model = keras.models.Model(input_layer, x)
+    inception_model = keras.models.Model(input_layer, x, name="inception_model")
     optimizer = keras.optimizers.Adam(
         learning_rate=particle.lr,
         beta_1=particle.b1,
@@ -165,7 +171,7 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
 
-    epochs = 1
+    epochs = FINE_TUNE_EPOCHS
     history = inception_model.fit(
         train_ds,
         epochs=epochs,
@@ -212,13 +218,13 @@ def fitnessfunction(particle: Input) -> Output:
     x_dense = densenet_model(augmented_image)
     x_incep = inception_model(augmented_image)
     x = keras.layers.Average()([x_dense, x_incep])
-    ensemble_model = keras.models.Model(input_layer, x, "ensemble_model")
+    ensemble_model = keras.models.Model(input_layer, x,name="ensemble_model")
     ensemble_model.compile(
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
     scoresList = ensemble_model.evaluate(test_ds, verbose=1, steps=test_steps_per_epoch)
-    score = scoresList[1]
-    return score
+    op = Output(loss=scoresList[0], score=scoresList[1])
+    return op
 
 
 client = Client(server_name="mrfo_btp", func=fitnessfunction)

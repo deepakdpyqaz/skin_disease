@@ -31,7 +31,7 @@ def get_system_stats():
     # Get CPU information
     cpu_count = psutil.cpu_count(logical=True)  # Physical CPU cores
     cpu_percent = psutil.cpu_percent(
-        interval=1, percpu=False
+        interval=60, percpu=False
     )  # CPU utilization percentage per core
 
     # Get memory information

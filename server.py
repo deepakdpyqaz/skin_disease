@@ -10,7 +10,10 @@ import json
 
 TELEGRAM_TOKEN = "5765471758:AAFPzn2Z2gbbe0sp6yurqxwbSmYrrGanla4"
 TELEGRAM_CHAT_ID = "1479006629"
+RESULTS = "results"
 
+if not os.path.exists(RESULTS):
+    os.mkdir(RESULTS)
 
 def send_to_telegram(text):
     """
@@ -148,7 +151,11 @@ def get_scores(population, name="iteration"):
     server.create_task(name, to_calculate)
     calculated_results = server.get_results(timeout=2 * 60 * 60)
     results.extend(calculated_results)
-    scores = [op.score for res in sorted(results, key=attrgetter("_id"))]
+    scores = []
+    losses = []
+    for res in sorted(results, key=attrgetter("_id")):
+        scores.append(res.score)
+        losses.append(res.loss)
     if len(scores) != len(population):
         logging.error(f"Lengths of scores and population do not match for {name}")
         send_to_telegram(f"Lengths of scores and population do not match for {name}")
@@ -156,11 +163,11 @@ def get_scores(population, name="iteration"):
     # Updating the global hashmap
     for idx in range(len(population)):
         global_hashmap[population_task[idx]] = results[idx]
-    return scores
+    return scores,losses
 
 
-POPULATION_SIZE = 3  # Number of particles
-NO_OF_ITERATIONS = 2  # Number of iterations of MRFO
+POPULATION_SIZE = 10  # Number of particles
+NO_OF_ITERATIONS = 30  # Number of iterations of MRFO
 LOWER_BOUND = 0.0
 UPPER_BOUND = 1.0
 finished_iterations = IterationConfig()
@@ -188,6 +195,9 @@ SOLUTION_SIZE = len(ranges.keys())
 population = np.random.uniform(
     low=LOWER_BOUND, high=UPPER_BOUND, size=(POPULATION_SIZE, SOLUTION_SIZE)
 )
+logging.info("Code started")
+send_to_telegram("Code started")
+print("Code started")
 
 if (
     os.path.exists("bestSolutions.npy")
@@ -204,14 +214,6 @@ else:
     best_score = np.max(scores)
     best_solution = population[np.argmax(scores)]
 
-MRFO = {
-    "r": 0.5,
-    "b": 0.5,
-    "a": 0.5,
-    "r2": 0.5,
-    "r3": 0.5,
-    "s": 0.5,
-}
 
 
 logging.info(
@@ -225,76 +227,88 @@ print(
 )
 for iterationNumber in range(finished_iterations, NO_OF_ITERATIONS):
     if np.random.uniform() < 0.5:  # Cyclone forgaging
+        r = np.random.uniform(1)
+        alpha = 2*r*np.sqrt(np.abs(np.log(r)))
+        r1 = np.random.uniform(1)
+        beta = 2*np.exp(r1*(NO_OF_ITERATIONS-iterationNumber+1)/NO_OF_ITERATIONS)*np.sin(2*np.pi*r1)
+        s = 2
+        r2 = np.random.uniform(1)
+        r3 = np.random.uniform(1)
         if iterationNumber / NO_OF_ITERATIONS < np.random.rand():  # Exploratory
             x_rand = np.random.uniform(size=SOLUTION_SIZE)
             population[0] = (
                 x_rand
-                + MRFO["r"] * (x_rand - population[0])
-                + MRFO["b"] * (x_rand - population[0])
+                + r * (x_rand - population[0])
+                + beta * (x_rand - population[0])
             )
             population[0] = np.clip(population[0], LOWER_BOUND, UPPER_BOUND)
             for i in range(1, POPULATION_SIZE):
                 population[i] = (
                     x_rand
-                    + MRFO["r"] * (population[i - 1] - population[i])
-                    + MRFO["b"] * (x_rand - population[i])
+                    + r * (population[i - 1] - population[i])
+                    + beta * (x_rand - population[i])
                 )
                 population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
         else:  # Exploitative
             population[0] = (
                 best_solution
-                + MRFO["r"] * (best_solution - population[0])
-                + MRFO["b"] * (best_solution - population[0])
+                + r * (best_solution - population[0])
+                + beta * (best_solution - population[0])
             )
             population[0] = np.clip(population[0], LOWER_BOUND, UPPER_BOUND)
             for i in range(1, POPULATION_SIZE):
                 population[i] = (
                     best_solution
-                    + MRFO["r"] * (population[i - 1] - population[i])
-                    + MRFO["b"] * (best_solution - population[i])
+                    + r * (population[i - 1] - population[i])
+                    + beta * (best_solution - population[i])
                 )
                 population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     else:  # Chain forgaging
         population[0] = (
             population[0]
-            + MRFO["r"] * (best_solution - population[0])
-            + MRFO["a"] * (best_solution - population[0])
+            + r * (best_solution - population[0])
+            + alpha * (best_solution - population[0])
         )
         population[0] = np.clip(population[0], LOWER_BOUND, UPPER_BOUND)
         for i in range(1, POPULATION_SIZE):
             population[i] = (
                 population[i]
-                + MRFO["r"] * (population[i - 1] - population[i])
-                + MRFO["a"] * (best_solution - population[i])
+                + r * (population[i - 1] - population[i])
+                + alpha * (best_solution - population[i])
             )
             population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores = get_scores(population, f"Iteration-{iterationNumber}-1")
+    scores,losses = get_scores(population, f"Iteration-{iterationNumber}-1")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
 
     # Summersault forgaging
     for i in range(POPULATION_SIZE):
-        population[i] = population[i] + MRFO["s"] * (
-            MRFO["r2"] * best_solution - MRFO["r3"] * population[i]
+        population[i] = population[i] + s * (
+            r2 * best_solution - r3 * population[i]
         )
         population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores = get_scores(population, f"Iteration-{iterationNumber}-2")
+    scores,losses = get_scores(population, f"Iteration-{iterationNumber}-2")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
     np.save("population.npy", population)
     np.save("best_solution.npy", best_solution)
     np.save("best_score.npy", best_score)
-    np.save(
-        f"iteration-{iterationNumber}-{str(best_score).replace('.','_')}.npy",
-        best_solution,
-    )
+    iteration_dir = os.path.join(RESULTS, f"iteration-{iterationNumber}-{best_score.replace('.','_')}")
+    if not os.path.exists(iteration_dir):
+        os.makedirs(iteration_dir)
+    np.save(os.path.join(iteration_dir, "population.npy"), population)
+    np.save(os.path.join(iteration_dir, "best_solution.npy"), best_solution)
+    np.save(os.path.join(iteration_dir, "best_score.npy"), best_score)
+    np.save(os.path.join(iteration_dir, "scores.npy"), scores)
+    np.save(os.path.join(iteration_dir, "losses.npy"), losses)
+
     finished_iterations.increment()
     logging.info(f"Iteration {iterationNumber} completed with best score {best_score}")
     send_to_telegram(
