@@ -18,7 +18,7 @@ message Input {
 }
 
 message Output {
-    int32 score = 1;
-    int32 loss = 2;
+    float score = 1;
+    float loss = 2;
     int32 _id = 3;
 }
