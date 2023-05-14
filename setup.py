@@ -36,7 +36,6 @@ print("Subdirectories extracted successfully!")
 # Deleting subdirectories
 shutil.rmtree("temp")
 print("Data setup complete!")
-exit()
 cred_id = settings["cred_id"]
 cred_output = ".credentials.zip"
 gdown.download(id=cred_id, output=cred_output, quiet=False)
