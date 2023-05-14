@@ -11,31 +11,38 @@ if len(sys.argv) > 1:
     given_password = sys.argv[1]
 else:
     given_password = None
+
+if len(sys.argv) > 2:
+    data = bool(int(sys.argv[2]))
+else:
+    data = True
+
+
 settings = json.load(open("settings.json"))
 
+if data:
+    # Downloading file
+    id = settings["data_id"]
+    output = "data.zip"
+    gdown.download(id=id, output=output, quiet=False)
 
-# Downloading file
-id = settings["data_id"]
-output = "data.zip"
-gdown.download(id=id, output=output, quiet=False)
+    print("Data downloaded successfully!")
+    # Extracting base file
+    with ZipFile("data.zip") as zip:
+        zip.extractall("temp")
 
-print("Data downloaded successfully!")
-# Extracting base file
-with ZipFile("data.zip") as zip:
-    zip.extractall("temp")
+    print("Base file extracted successfully!")
+    # Delete base file
+    os.remove("data.zip")
 
-print("Base file extracted successfully!")
-# Delete base file
-os.remove("data.zip")
-
-# Extracting subdirectories
-for f in Path("temp").glob("**/**/*.zip"):
-    with ZipFile(f) as zip:
-        zip.extractall()
-print("Subdirectories extracted successfully!")
-# Deleting subdirectories
-shutil.rmtree("temp")
-print("Data setup complete!")
+    # Extracting subdirectories
+    for f in Path("temp").glob("**/**/*.zip"):
+        with ZipFile(f) as zip:
+            zip.extractall()
+    print("Subdirectories extracted successfully!")
+    # Deleting subdirectories
+    shutil.rmtree("temp")
+    print("Data setup complete!")
 cred_id = settings["cred_id"]
 cred_output = ".credentials.zip"
 gdown.download(id=cred_id, output=cred_output, quiet=False)
