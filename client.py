@@ -11,13 +11,18 @@ import shutil
 from pathlib import Path
 import sys
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 
-if len(sys.argv)>1:
+if len(sys.argv) > 1:
     EPOCHS = int(sys.argv[1])
 else:
     EPOCHS = 20
+
+if len(sys.argv) > 2:
+    FINE_TUNE_EPOCHS = int(sys.argv[2])
+else:
+    FINE_TUNE_EPOCHS = 3
 
 
 def load_dir_generator(dir):
@@ -69,7 +74,7 @@ def fitnessfunction(particle: Input) -> Output:
     val_steps_per_epoch = len(os.listdir("X_val")) // particle.batch_size
     test_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size
 
-    input_layer = keras.layers.Input(shape=(192, 256, 3),name="input_layer")
+    input_layer = keras.layers.Input(shape=(192, 256, 3), name="input_layer")
     augmented_image = data_augmentation()(input_layer)
 
     pre_trained_densenet_model = keras.applications.DenseNet201(
@@ -85,7 +90,7 @@ def fitnessfunction(particle: Input) -> Output:
     x = keras.layers.Dropout(0.5)(x)
     x = keras.layers.Dense(7, activation="softmax")(x)
 
-    densenet_model = keras.models.Model(input_layer, x,name="densenet_model")
+    densenet_model = keras.models.Model(input_layer, x, name="densenet_model")
     optimizer = keras.optimizers.Adam(
         learning_rate=particle.lr,
         beta_1=particle.b1,
@@ -218,7 +223,7 @@ def fitnessfunction(particle: Input) -> Output:
     x_dense = densenet_model(augmented_image)
     x_incep = inception_model(augmented_image)
     x = keras.layers.Average()([x_dense, x_incep])
-    ensemble_model = keras.models.Model(input_layer, x,name="ensemble_model")
+    ensemble_model = keras.models.Model(input_layer, x, name="ensemble_model")
     ensemble_model.compile(
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
