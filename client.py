@@ -228,7 +228,7 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
     scoresList = ensemble_model.evaluate(test_ds, verbose=1, steps=test_steps_per_epoch)
-    train_score_list = ensemble_model.evaluate(trian_ds, verbose=1, steps=train_steps_per_epoch)
+    train_score_list = ensemble_model.evaluate(train_ds, verbose=1, steps=train_steps_per_epoch)
     op = Output(loss=scoresList[0], score=scoresList[1], train_loss = train_score_list[0], train_score = train_score_list[1])
     return op
 
