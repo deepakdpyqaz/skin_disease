@@ -70,8 +70,7 @@ def fitnessfunction(particle: Input) -> Output:
     train_ds = create_dataset("X_train", "y_train")
     test_ds = create_dataset("X_test", "y_test")
     val_ds = create_dataset("X_val", "y_val")
-    train_ds = test_ds
-    train_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size
+    train_steps_per_epoch = len(os.listdir("X_train")) // particle.batch_size
     val_steps_per_epoch = len(os.listdir("X_val")) // particle.batch_size
     test_steps_per_epoch = len(os.listdir("X_test")) // particle.batch_size
 
@@ -229,7 +228,8 @@ def fitnessfunction(particle: Input) -> Output:
         loss="categorical_crossentropy", optimizer=optimizer, metrics=["accuracy"]
     )
     scoresList = ensemble_model.evaluate(test_ds, verbose=1, steps=test_steps_per_epoch)
-    op = Output(loss=scoresList[0], score=scoresList[1])
+    train_score_list = ensemble_model.evaluate(trian_ds, verbose=1, steps=train_steps_per_epoch)
+    op = Output(loss=scoresList[0], score=scoresList[1], train_loss = train_score_list[0], train_score = train_score_list[1])
     return op
 
 

@@ -286,6 +286,8 @@ class Client:
                 self.channel.basic_ack(delivery_tag=method.delivery_tag)
                 end = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
                 task_log["end"] = end
+                task_log["score"] = str(op.score)
+                task_log["loss"] = str(op.loss)
                 self.make_log(task_log)
             except Exception as e:
                 print(e)

@@ -156,9 +156,13 @@ def get_scores(population, name="iteration"):
     results.extend(calculated_results)
     scores = []
     losses = []
+    train_loss = []
+    train_accuracy = []
     for res in sorted(results, key=attrgetter("_id")):
         scores.append(res.score)
         losses.append(res.loss)
+        train_loss.append(res.train_loss)
+        train_accuracy.append(res.train_score)
     if len(scores) != len(population):
         logging.error(f"Lengths of scores and population do not match for {name}")
         send_to_telegram(f"Lengths of scores and population do not match for {name}")
@@ -166,7 +170,7 @@ def get_scores(population, name="iteration"):
     # Updating the global hashmap
     for idx in range(len(population)):
         global_hashmap[population_task[idx]] = results[idx]
-    return scores, losses
+    return scores, losses, train_loss, train_accuracy
 
 
 POPULATION_SIZE = 10  # Number of particles
@@ -213,7 +217,7 @@ if (
     best_score = np.load("best_score.npy")
 else:
     # First iteration
-    scores, losses = get_scores(population, "Init Iteration")
+    scores, losses, train_loss, train_accuracy = get_scores(population, "Init Iteration")
     best_score = np.max(scores)
     best_solution = population[np.argmax(scores)]
 
@@ -284,7 +288,7 @@ for iterationNumber in range(finished_iterations.iteration, NO_OF_ITERATIONS):
             population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores, losses = get_scores(population, f"Iteration-{iterationNumber}-1")
+    scores, losses, train_loss, train_accuracy = get_scores(population, f"Iteration-{iterationNumber}-1")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
@@ -295,7 +299,7 @@ for iterationNumber in range(finished_iterations.iteration, NO_OF_ITERATIONS):
         population[i] = np.clip(population[i], LOWER_BOUND, UPPER_BOUND)
 
     # Calculating Fitness
-    scores, losses = get_scores(population, f"Iteration-{iterationNumber}-2")
+    scores, losses, train_loss, train_accuracy = get_scores(population, f"Iteration-{iterationNumber}-2")
     if np.max(scores) > best_score:
         best_score = np.max(scores)
         best_solution = population[np.argmax(scores)]
@@ -312,6 +316,8 @@ for iterationNumber in range(finished_iterations.iteration, NO_OF_ITERATIONS):
     np.save(os.path.join(iteration_dir, "best_score.npy"), best_score)
     np.save(os.path.join(iteration_dir, "scores.npy"), scores)
     np.save(os.path.join(iteration_dir, "losses.npy"), losses)
+    np.save(os.path.join(iteration_dir, "train_loss.npy"), train_loss)
+    np.save(os.path.join(iteration_dir, "train_accuracy.npy"), train_accuracy)
 
     finished_iterations.increment()
     logging.info(f"Iteration {iterationNumber} completed with best score {best_score}")

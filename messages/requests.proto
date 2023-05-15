@@ -20,5 +20,7 @@ message Input {
 message Output {
     float score = 1;
     float loss = 2;
-    int32 _id = 3;
+    float train_loss = 3;
+    float train_score = 4;
+    int32 _id = 5;
 }
