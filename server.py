@@ -10,9 +10,12 @@ import json
 from operator import attrgetter
 import base64
 
-TELEGRAM_TOKEN = "5765471758:AAFPzn2Z2gbbe0sp6yurqxwbSmYrrGanla4"
-TELEGRAM_CHAT_ID = "1479006629"
+telegram = json.load(open(".credentials/telegram.json"))
+
+TELEGRAM_TOKEN = telegram["token"]
+TELEGRAM_CHAT_ID = telegram["chat_id"]
 RESULTS = "results"
+
 
 if not os.path.exists(RESULTS):
     os.mkdir(RESULTS)
